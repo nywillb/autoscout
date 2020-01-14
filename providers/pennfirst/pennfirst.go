@@ -113,3 +113,6 @@ func (PennFIRST) GetData(config config.Config) (map[int]data.Team, [][]string) {
 
 	return teams, matches
 }
+
+// GetName provides the name of the data provider
+func (PennFIRST) GetName() string { return "Penn FIRST" }

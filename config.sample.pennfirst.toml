@@ -1,4 +1,4 @@
 [Stats]
-Type = "Penn First" # Type of server. Currently only "Penn First" is supported
+Type = "Penn FIRST"
 URL = "http://detroit.worlds.pennfirst.org/" # Base URL of server
 division = "Edison" # division

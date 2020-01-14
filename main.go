@@ -11,6 +11,7 @@ import (
 	"github.com/montanaflynn/stats"
 	"github.com/willbarkoff/autoscout/config"
 	"github.com/willbarkoff/autoscout/data"
+	"github.com/willbarkoff/autoscout/providers"
 	"github.com/willbarkoff/autoscout/providers/pennfirst"
 )
 
@@ -23,7 +24,18 @@ func (a byExpO) Less(i, j int) bool { return a[i].ExpO > a[j].ExpO }
 func main() {
 	config := config.Configure()
 
-	teams, matchesSpreadsheet := pennfirst.PennFIRST{}.GetData(config)
+	sources := []providers.Provider{pennfirst.PennFIRST{}}
+
+	var source providers.Provider
+
+	for _, src := range sources {
+		if src.GetName() == config.Stats.Type {
+			source = src
+			break
+		}
+	}
+
+	teams, matchesSpreadsheet := source.GetData(config)
 
 	// teams := map[int]Team{
 	// 	4174: Team{
