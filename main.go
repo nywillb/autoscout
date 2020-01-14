@@ -35,6 +35,10 @@ func main() {
 		}
 	}
 
+	if source == nil {
+		panic("Provider not found")
+	}
+
 	teams, matches := source.GetData(config)
 
 	for i, team := range teams {
