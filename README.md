@@ -2,6 +2,13 @@
 
 > Automatic scouting for First Tech Challenge Teams
 
+![Go version](https://img.shields.io/github/go-mod/go-version/willbarkoff/autoscout?logo=go&style=flat-square)
+[![Latest release](https://img.shields.io/github/v/tag/willbarkoff/autoscout?label=latest%20release&sort=semver&style=flat-square)](https://github.com/willbarkoff/autoscout/releases)
+[![Latest release (including pre-release)](https://img.shields.io/github/v/release/willbarkoff/autoscout?include_prereleases&label=latest%20release%20%28prerelease%29&sort=semver&style=flat-square)](https://github.com/willbarkoff/autoscout/releases)
+[![Build Status](https://img.shields.io/github/workflow/status/willbarkoff/autoscout/Build?style=flat-square)](https://github.com/willbarkoff/autoscout/actions)
+[![License](https://img.shields.io/github/license/willbarkoff/autoscout?style=flat-square)](./LICENSE.md)
+[![Created By](https://img.shields.io/badge/created%20by-FTC%20%2317126%20Natural%20Selection-brightgreen?style=flat-square)](https://theorangealliance.org/teams/17126)
+
 - [⬇️ **Download**](https://github.com/willbarkoff/autoscout/releases) 
 - [🐛 **Report a bug**](https://github.com/willbarkoff/issues/new)
 
