@@ -2,59 +2,28 @@ package main
 
 import (
 	"encoding/csv"
-	"encoding/json"
-	"fmt"
-	"io/ioutil"
 	"log"
-	"net/http"
 	"os"
 	"sort"
 	"strconv"
 	"strings"
 
 	"github.com/montanaflynn/stats"
-
-	"github.com/PuerkitoBio/goquery"
+	"github.com/willbarkoff/autoscout/config"
+	"github.com/willbarkoff/autoscout/data"
+	"github.com/willbarkoff/autoscout/providers/pennfirst"
 )
 
-type Team struct {
-	A           float64
-	Number      int
-	Name        string
-	Affiliation string
-	City        string
-	State       string
-	Country     string
-	Scores      []int
-	Teammates   []int
-	Opar        float64
-	ExpO        float64
-	Varience    float64
-	ExpOs       []float64
-	mods        []float64
-}
+type byExpO []data.Team
 
-type Match struct {
-	Red         int
-	Blue        int
-	RedScore    int
-	BlueScore   int
-	RedPenalty  int
-	BluePenalty int
-	RedTeam     []int
-	BlueTeam    []int
-}
-
-type ByExpO []Team
-
-func (a ByExpO) Len() int           { return len(a) }
-func (a ByExpO) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
-func (a ByExpO) Less(i, j int) bool { return a[i].ExpO > a[j].ExpO }
+func (a byExpO) Len() int           { return len(a) }
+func (a byExpO) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a byExpO) Less(i, j int) bool { return a[i].ExpO > a[j].ExpO }
 
 func main() {
-	config := configure()
+	config := config.Configure()
 
-	teams, matchesSpreadsheet := getData(config)
+	teams, matchesSpreadsheet := pennfirst.PennFIRST{}.GetData(config)
 
 	// teams := map[int]Team{
 	// 	4174: Team{
@@ -86,7 +55,7 @@ func main() {
 	// 	// {"", "", "4174 11453", "6051 9371", "17", "", "", "", "", "0", "12", "", "", "", "", "0"},
 	// }
 
-	matches := []Match{}
+	matches := []data.Match{}
 
 	for _, matchRow := range matchesSpreadsheet {
 		redTeamsStr := strings.Split(matchRow[2], " ")
@@ -102,7 +71,7 @@ func main() {
 		red := redScore - redPenalty
 		blue := blueScore - bluePenalty
 
-		match := Match{
+		match := data.Match{
 			Red:         red,
 			Blue:        blue,
 			RedScore:    redScore,
@@ -187,14 +156,14 @@ func main() {
 
 	avgBot /= float64(len(teams))
 
-	teamsArr := []Team{}
+	teamsArr := []data.Team{}
 
 	for _, team := range teams {
 		team.Opar = team.ExpO / avgBot
 		teamsArr = append(teamsArr, team)
 	}
 
-	sort.Sort(ByExpO(teamsArr))
+	sort.Sort(byExpO(teamsArr))
 
 	file, err := os.Create("scout.csv")
 	if err != nil {
@@ -237,104 +206,6 @@ func main() {
 			panic(err)
 		}
 	}
-}
-
-func getData(config Config) (map[int]Team, [][]string) {
-	serverConfigResp, err := http.Get(config.Stats.URL + "js/config.json")
-	if err != nil {
-		panic(err)
-	}
-
-	defer serverConfigResp.Body.Close()
-	body, err := ioutil.ReadAll(serverConfigResp.Body)
-	if err != nil {
-		panic(err)
-	}
-
-	var serverConfig serverConfig
-
-	err = json.Unmarshal(body, &serverConfig)
-	if err != nil {
-		panic(err)
-	}
-
-	var division Division
-	for _, loopDivision := range serverConfig.Divisions {
-		if loopDivision.Name == config.Stats.Division {
-			division = loopDivision
-		}
-	}
-	if (division == Division{}) {
-		fmt.Println("Division " + config.Stats.Division + " not found.")
-	}
-
-	detailResp, err := http.Get(config.Stats.URL + division.Sources.Details)
-	if err != nil {
-		panic(err)
-	}
-
-	defer detailResp.Body.Close()
-	doc, err := goquery.NewDocumentFromReader(detailResp.Body)
-	if err != nil {
-		panic(err)
-	}
-
-	var matches [][]string
-
-	doc.Find("tr").Each(func(i int, s *goquery.Selection) {
-		if i < 2 {
-			return //Skip this iteration of the loop, because it is the header row.
-		}
-		row := []string{}
-		s.Find("td").Each(func(j int, t *goquery.Selection) {
-			row = append(row, t.Text())
-		})
-		matches = append(matches, row)
-	})
-
-	teamsResp, err := http.Get(config.Stats.URL + division.Sources.Teams)
-	if err != nil {
-		panic(err)
-	}
-
-	defer teamsResp.Body.Close()
-	teamsDoc, err := goquery.NewDocumentFromReader(teamsResp.Body)
-	if err != nil {
-		panic(err)
-	}
-
-	var teamsArray [][]string
-
-	teamsDoc.Find("tr").Each(func(i int, s *goquery.Selection) {
-		if i < 1 {
-			return //Skip this iteration of the loop, because it is the header row.
-		}
-		row := []string{}
-		s.Find("td").Each(func(j int, t *goquery.Selection) {
-			row = append(row, t.Text())
-		})
-		teamsArray = append(teamsArray, row)
-	})
-
-	teams := map[int]Team{}
-
-	for _, team := range teamsArray {
-		num, err := strconv.Atoi(team[0])
-		if err != nil {
-			panic(err)
-		}
-		thisTeam := Team{
-			Number:      num,
-			Name:        team[1],
-			Affiliation: team[2],
-			City:        team[3],
-			State:       team[4],
-			Country:     team[5],
-		}
-		teams[num] = thisTeam
-	}
-
-	return teams, matches
 }
 
 func avg(numbers []float64) float64 {
