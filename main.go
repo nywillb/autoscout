@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/csv"
+	"flag"
 	"log"
 	"os"
 	"sort"
@@ -21,8 +22,12 @@ func (a byExpO) Len() int           { return len(a) }
 func (a byExpO) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 func (a byExpO) Less(i, j int) bool { return a[i].ExpO > a[j].ExpO }
 
+var configFile = flag.String("config", "config.toml", "configuration file")
+var outputFile = flag.String("output", "scout.csv", "output file")
+
 func main() {
-	config := config.Configure()
+	flag.Parse()
+	config := config.Configure(*configFile)
 
 	sources := []providers.Provider{pennfirst.PennFIRST{}, toa.TOA{}}
 
@@ -101,7 +106,7 @@ func main() {
 
 	sort.Sort(byExpO(teamsArr))
 
-	file, err := os.Create("scout.csv")
+	file, err := os.Create(*outputFile)
 	if err != nil {
 		panic(err)
 	}

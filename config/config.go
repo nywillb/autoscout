@@ -20,9 +20,9 @@ type StatsConfig struct {
 }
 
 // Configure loads the config.toml file into memory
-func Configure() Config {
+func Configure(file string) Config {
 	config := Config{}
-	_, err := toml.DecodeFile("config.toml", &config)
+	_, err := toml.DecodeFile(file, &config)
 	if err != nil {
 		panic(err)
 	}
