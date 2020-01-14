@@ -12,6 +12,7 @@ import (
 	"github.com/willbarkoff/autoscout/data"
 	"github.com/willbarkoff/autoscout/providers"
 	"github.com/willbarkoff/autoscout/providers/pennfirst"
+	"github.com/willbarkoff/autoscout/providers/toa"
 )
 
 type byExpO []data.Team
@@ -23,7 +24,7 @@ func (a byExpO) Less(i, j int) bool { return a[i].ExpO > a[j].ExpO }
 func main() {
 	config := config.Configure()
 
-	sources := []providers.Provider{pennfirst.PennFIRST{}}
+	sources := []providers.Provider{pennfirst.PennFIRST{}, toa.TOA{}}
 
 	var source providers.Provider
 

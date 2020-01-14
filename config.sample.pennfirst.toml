@@ -1,4 +1,4 @@
 [Stats]
 Type = "Penn FIRST"
-URL = "http://detroit.worlds.pennfirst.org/" # Base URL of server
-division = "Edison" # division
+URL = "http://detroit.worlds.pennfirst.org/"
+division = "Edison"

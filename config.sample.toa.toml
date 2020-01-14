@@ -1,0 +1,5 @@
+[Stats]
+Type = "TOA"
+TOAKey = "secret TOA key"
+TOAOrigin = "Autoscout"
+TOAEventKey = "TOA event key"

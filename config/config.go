@@ -11,9 +11,12 @@ type Config struct {
 
 // StatsConfig is a configuration for how to get the stats
 type StatsConfig struct {
-	Type     string
-	URL      string
-	Division string
+	Type        string
+	URL         string
+	Division    string
+	TOAKey      string
+	TOAOrigin   string
+	TOAEventKey string
 }
 
 // Configure loads the config.toml file into memory
