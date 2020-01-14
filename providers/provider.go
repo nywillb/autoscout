@@ -8,5 +8,5 @@ import (
 // A Provider provides data to be used by autoscout.
 type Provider interface {
 	GetName() string
-	GetData(config.Config) (map[int]data.Team, [][]string)
+	GetData(config.Config) (map[int]data.Team, []data.Match)
 }

@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/willbarkoff/autoscout/config"
@@ -16,7 +17,7 @@ import (
 type PennFIRST struct{}
 
 // GetData provides data
-func (PennFIRST) GetData(config config.Config) (map[int]data.Team, [][]string) {
+func (PennFIRST) GetData(config config.Config) (map[int]data.Team, []data.Match) {
 	serverConfigResp, err := http.Get(config.Stats.URL + "js/config.json")
 	if err != nil {
 		panic(err)
@@ -56,7 +57,7 @@ func (PennFIRST) GetData(config config.Config) (map[int]data.Team, [][]string) {
 		panic(err)
 	}
 
-	var matches [][]string
+	var matchesSpreadsheet [][]string
 
 	doc.Find("tr").Each(func(i int, s *goquery.Selection) {
 		if i < 2 {
@@ -66,7 +67,7 @@ func (PennFIRST) GetData(config config.Config) (map[int]data.Team, [][]string) {
 		s.Find("td").Each(func(j int, t *goquery.Selection) {
 			row = append(row, t.Text())
 		})
-		matches = append(matches, row)
+		matchesSpreadsheet = append(matchesSpreadsheet, row)
 	})
 
 	teamsResp, err := http.Get(config.Stats.URL + division.Sources.Teams)
@@ -109,6 +110,56 @@ func (PennFIRST) GetData(config config.Config) (map[int]data.Team, [][]string) {
 			Country:     team[5],
 		}
 		teams[num] = thisTeam
+	}
+
+	matches := []data.Match{}
+
+	for _, matchRow := range matchesSpreadsheet {
+		redTeamsStr := strings.Split(matchRow[2], " ")
+		blueTeamsStr := strings.Split(matchRow[3], " ")
+		redScore, err := strconv.Atoi(matchRow[4])
+		redPenalty, err := strconv.Atoi(matchRow[9])
+		blueScore, err := strconv.Atoi(matchRow[10])
+		bluePenalty, err := strconv.Atoi(matchRow[15])
+		if err != nil {
+			panic(err)
+		}
+
+		red := redScore - redPenalty
+		blue := blueScore - bluePenalty
+
+		match := data.Match{
+			Red:         red,
+			Blue:        blue,
+			RedScore:    redScore,
+			BlueScore:   blueScore,
+			RedPenalty:  redPenalty,
+			BluePenalty: bluePenalty,
+		}
+
+		for _, team := range redTeamsStr {
+			number, err := strconv.Atoi(team)
+			if err != nil {
+				panic(err)
+			}
+			teamStats := teams[number]
+			teamStats.Scores = append(teamStats.Scores, red)
+			teams[number] = teamStats
+			match.RedTeam = append(match.RedTeam, number)
+		}
+
+		for _, team := range blueTeamsStr {
+			number, err := strconv.Atoi(team)
+			if err != nil {
+				panic(err)
+			}
+			teamStats := teams[number]
+			teamStats.Scores = append(teamStats.Scores, blue)
+			teams[number] = teamStats
+			match.BlueTeam = append(match.BlueTeam, number)
+		}
+
+		matches = append(matches, match)
 	}
 
 	return teams, matches

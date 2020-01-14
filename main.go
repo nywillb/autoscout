@@ -6,7 +6,6 @@ import (
 	"os"
 	"sort"
 	"strconv"
-	"strings"
 
 	"github.com/montanaflynn/stats"
 	"github.com/willbarkoff/autoscout/config"
@@ -35,87 +34,7 @@ func main() {
 		}
 	}
 
-	teams, matchesSpreadsheet := source.GetData(config)
-
-	// teams := map[int]Team{
-	// 	4174: Team{
-	// 		Number: 4174,
-	// 		Name:   "Atomic Theory",
-	// 	},
-	// 	6051: Team{
-	// 		Number: 6051,
-	// 		Name:   "Quantum Mechanics",
-	// 	},
-	// 	9371: Team{
-	// 		Number: 9371,
-	// 		Name:   "General Relativity",
-	// 	},
-	// 	9372: Team{
-	// 		Number: 9372,
-	// 		Name:   "Standard Model",
-	// 	},
-	// 	11453: Team{
-	// 		Number: 11453,
-	// 		Name:   "Uncertianty Principle",
-	// 	},
-	// }
-
-	// matchesSpreadsheet := [][]string{
-	// 	// {"", "", "4174 6051", "11453 9371", "10", "", "", "", "", "0", "20", "", "", "", "", "0"},
-	// 	// {"", "", "11453 9372", "4174 6051", "15", "", "", "", "", "0", "19", "", "", "", "", "0"},
-	// 	// {"", "", "9371 4174", "6051 9372", "18", "", "", "", "", "0", "30", "", "", "", "", "0"},
-	// 	// {"", "", "4174 11453", "6051 9371", "17", "", "", "", "", "0", "12", "", "", "", "", "0"},
-	// }
-
-	matches := []data.Match{}
-
-	for _, matchRow := range matchesSpreadsheet {
-		redTeamsStr := strings.Split(matchRow[2], " ")
-		blueTeamsStr := strings.Split(matchRow[3], " ")
-		redScore, err := strconv.Atoi(matchRow[4])
-		redPenalty, err := strconv.Atoi(matchRow[9])
-		blueScore, err := strconv.Atoi(matchRow[10])
-		bluePenalty, err := strconv.Atoi(matchRow[15])
-		if err != nil {
-			panic(err)
-		}
-
-		red := redScore - redPenalty
-		blue := blueScore - bluePenalty
-
-		match := data.Match{
-			Red:         red,
-			Blue:        blue,
-			RedScore:    redScore,
-			BlueScore:   blueScore,
-			RedPenalty:  redPenalty,
-			BluePenalty: bluePenalty,
-		}
-
-		for _, team := range redTeamsStr {
-			number, err := strconv.Atoi(team)
-			if err != nil {
-				panic(err)
-			}
-			teamStats := teams[number]
-			teamStats.Scores = append(teamStats.Scores, red)
-			teams[number] = teamStats
-			match.RedTeam = append(match.RedTeam, number)
-		}
-
-		for _, team := range blueTeamsStr {
-			number, err := strconv.Atoi(team)
-			if err != nil {
-				panic(err)
-			}
-			teamStats := teams[number]
-			teamStats.Scores = append(teamStats.Scores, blue)
-			teams[number] = teamStats
-			match.BlueTeam = append(match.BlueTeam, number)
-		}
-
-		matches = append(matches, match)
-	}
+	teams, matches := source.GetData(config)
 
 	for i, team := range teams {
 		a := float64(0)
